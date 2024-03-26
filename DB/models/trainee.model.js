@@ -57,6 +57,19 @@ const traineeSchema = new Schema(
       type: String,
       trim: true,
     },
+    nationality:{
+      type:String,
+      trim:true
+    },
+    biography:{
+      type:String,
+      trim:true,
+    },
+
+    experience:{
+      type:String,
+      trim:true
+    },
     isBlock: {
       type: Boolean,
       default: false,
