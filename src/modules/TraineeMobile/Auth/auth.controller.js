@@ -26,7 +26,6 @@ const tranieeSignUp = catchAsyncError(async (req, res, next) => {
     lastName,
     email,
     password,
-    profilePhoto,
     phoneNumber,
     OTP,
     OTPExpires: new Date(Date.now() + 10 * 60 * 1000), // OTP expires in 10 minutes
