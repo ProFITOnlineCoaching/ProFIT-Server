@@ -24,7 +24,6 @@ const traineeSchema = new Schema(
     },
     profilePhoto: { 
       type: String, 
-      default: "AAAA",
     },
     role: {
       type: String,

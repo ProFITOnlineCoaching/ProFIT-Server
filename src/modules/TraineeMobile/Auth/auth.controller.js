@@ -10,8 +10,6 @@ import { traineeBasicInfoModel } from './../../../../DB/models/traineeBasicInfo.
 const tranieeSignUp = catchAsyncError(async (req, res, next) => {
   const { firstName, lastName, email, password, phoneNumber } = req.body;
 
-  //  console.log(req.body);
-
   // Check if the email already exists in the database
   const existingUser = await traineeModel.findOne({ email });
   if (existingUser) {
@@ -19,21 +17,24 @@ const tranieeSignUp = catchAsyncError(async (req, res, next) => {
   }
 
   const OTP = generateRandomOTP();
-  console.log(existingUser);
 
-  // Create a new Trainee instance
+  // Explicitly set the profilePhoto when creating a new Trainee instance
   const newTrainee = new traineeModel({
     firstName,
     lastName,
     email,
     password,
     phoneNumber,
+    profilePhoto: "https://asset.cloudinary.com/dbpvx37nc/fa534bec3c11074c407903bcaabffad5", // Setting the profilePhoto directly
     OTP,
     OTPExpires: new Date(Date.now() + 10 * 60 * 1000), // OTP expires in 10 minutes
   });
 
+  console.log(newTrainee);
+
   await newTrainee.save();
 
+  // Email sending logic...
   const sentEmail = await sendEmail(
     {
       email: newTrainee.email,
@@ -45,11 +46,12 @@ const tranieeSignUp = catchAsyncError(async (req, res, next) => {
     req.headers.host,
     "confirmEmail"
   );
-  console.log(sentEmail);
+
   if (!sentEmail) {
     return next(new AppError("Email could not be sent", 500));
   }
-  res.status(201).json({ success: true, message:"User registered succesfully!", data: newTrainee });
+
+  res.status(201).json({ success: true, message: "User registered successfully!", data: newTrainee });
 });
 
 const verifyTraineeOTP = catchAsyncError(async (req, res, next) => {
