@@ -11,7 +11,7 @@ import { trainerModel } from "../../../../DB/models/trainer.model.js";
 const profileSettings = catchAsyncError(async (req, res, next) => {
     const traineeId = req.user.id;  
     console.log(traineeId);
-    const data = await traineeModel.findById(traineeId, 'firstName lastName email'); 
+    const data = await traineeModel.findById(traineeId, 'firstName lastName email profilePhoto'); 
     if (!data) {
         return next(new AppError("User was not found!", 404));
     }

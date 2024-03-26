@@ -22,8 +22,8 @@ const traineeSchema = new Schema(
       type: String,
       required: [true, "Password is required."],
     },
-    profilePhoto: {
-      type: String,
+    profilePhoto: { 
+      type: String, 
       default: "https://asset.cloudinary.com/dbpvx37nc/fa534bec3c11074c407903bcaabffad5",
     },
     role: {
