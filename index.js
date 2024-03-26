@@ -24,7 +24,9 @@ app.use("/api/v1/dashboard/auth", adminAuthRoutes);
 
 
 app.use("/api/v1/mobile/trainee/auth", traineeAuthRouter);
-app.use("/api/v1/mobile/traniee/explore", traineeExploreRouter);
+app.use("/api/v1/mobile/trainee/explore", traineeExploreRouter);
+app.use("/api/v1/mobile/trainee/profile", traineeExploreRouter);
+
 app.use("/api/v1/dashboard/tranier/auth", trainerAuthRoutes);
 app.use("/api/v1/dashboard/admin/auth", adminAuthRoutes);
 app.use("/api/v1/dashboard/admin", adminControllerRoutes);

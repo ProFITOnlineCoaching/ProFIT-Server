@@ -4,6 +4,18 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { AppError } from "../utils/AppError.js";
 
+import {v2 as cloudinary} from 'cloudinary';
+          
+cloudinary.config({ 
+  cloud_name: 'dbpvx37nc', 
+  api_key: '379943924215678', 
+  api_secret: '8HPjq5e6rCAY_NPLRGlNpwee-9Q' 
+});
+
+cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
+  { public_id: "olympic_flag" }, 
+  function(error, result) {console.log(result); });
+
 function multerRefactor() {
     const storage = multer.diskStorage({
         destination: (req, file, cb) => {
