@@ -27,6 +27,14 @@ const traineeBasicInfoSchema = new Schema({
       activityLevel:{
         type:String,
       },
+      religion: {
+        type: String,
+        trim: true,
+      },
+      nationality:{
+        type:String,
+        trim:true
+      },
 },{
     timestamps:true
 })

@@ -5,6 +5,7 @@ import { traineeModel } from "../../../../DB/models/trainee.model.js";
 import { traineeBasicInfoModel } from "./../../../../DB/models/traineeBasicInfo.model.js";
 import { trainerModel } from "../../../../DB/models/trainer.model.js";
 import { calculateAge } from "../../../middlewares/factors.js";
+import moment from 'moment';
 
 
 const profileSettings = catchAsyncError(async (req, res, next) => {
@@ -16,7 +17,6 @@ const profileSettings = catchAsyncError(async (req, res, next) => {
     }
     res.status(200).json({ success: true, message: "Data fetched succesfully", data });
 });
-
 
 const getAccountData = catchAsyncError(async (req, res, next) => {
     const traineeId = req.user.id;
@@ -48,32 +48,43 @@ const updateAccountData = catchAsyncError(async (req, res, next) => {
 
 const getPersonalData = catchAsyncError(async (req, res, next) => {
     const traineeId = req.user.id;
-    const trainee = await traineeModel.findById(traineeId).populate('traineeBasicInfo');
-
-    if (!trainee) {
-        return next(new AppError("Trainee not found", 404));
+    // Use .lean() to get a plain JavaScript object
+    const personalData = await traineeBasicInfoModel.findOne({ trainee: traineeId }).lean();
+    
+    if (!personalData) {
+        return next(new AppError("Personal data not found!", 404));
     }
 
-    // Extract the traineeBasicInfo for easier access
-    const basicInfo = trainee.traineeBasicInfo;
+    // Now you can safely modify it because it's a plain object
+    personalData.birthDate = moment(personalData.birthDate).format('YYYY-MM-DD');
 
-    // Assemble the response data
-    const data = {
-        fullName: `${trainee.firstName} ${trainee.lastName}`,
-        profilePhoto: trainee.profilePhoto,
-        biography: trainee.biography,
-        phoneNumber: trainee.phoneNumber,
-        age: basicInfo && basicInfo.birthDate ? calculateAge(basicInfo.birthDate) : null,
-        height: basicInfo ? basicInfo.height : null,
-        gender: basicInfo ? basicInfo.gender : null,
-        fitnessGoals: basicInfo ? basicInfo.fitnessGoals : null,
-        experience: trainee.experience,
-        activityLevel: basicInfo ? basicInfo.activityLevel : null,
-        religion: trainee.religion,
-        nationality: trainee.nationality,
-    };
-
-    res.status(200).json({ success: true, message: "Data fetched successfully", data });
+    res.status(200).json({ success: true, message: "Personal data fetched successfully", data: personalData });
 });
-export { profileSettings,getAccountData,updateAccountData,getPersonalData };
+
+
+const updatePersonalData = catchAsyncError(async (req, res, next) => {
+    const traineeId = req.user.id;
+    const updateData = req.body; // Data to update
+
+    // Perform the update operation
+    const updatedPersonalData = await traineeBasicInfoModel.findOneAndUpdate(
+        { trainee: traineeId },
+        updateData,
+        { new: true, runValidators: true, lean: true }
+    );
+
+    if (!updatedPersonalData) {
+        return next(new AppError("Personal data not found!", 404));
+    }
+
+    // Format the date in YYYY-MM-DD format
+    if (updatedPersonalData.birthDate instanceof Date) {
+        updatedPersonalData.birthDate = updatedPersonalData.birthDate.toISOString().split('T')[0];
+    }
+
+    res.status(200).json({ success: true, message: "Personal data updated successfully", data: updatedPersonalData });
+});
+
+
+export { profileSettings,getAccountData,updateAccountData,getPersonalData,updatePersonalData };
   

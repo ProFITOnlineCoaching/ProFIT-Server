@@ -49,18 +49,6 @@ const traineeSchema = new Schema(
       type: String,
       trim: true,
     },
-    religion: {
-      type: String,
-      trim: true,
-    },
-    language: {
-      type: String,
-      trim: true,
-    },
-    nationality:{
-      type:String,
-      trim:true
-    },
     biography:{
       type:String,
       trim:true,
