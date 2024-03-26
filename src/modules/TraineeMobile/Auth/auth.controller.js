@@ -5,7 +5,7 @@ import { generateRandomOTP } from "../../../utils/OTPGenerator.js";
 import { catchAsyncError } from "../../../utils/catchAsyncError.js";
 import { traineeModel } from "../../../../DB/models/trainee.model.js";
 import bcrypt from "bcryptjs";
-import { traineeBasicInfoModel } from './../../../../DB/models/traineeBasicInfo.model.js';
+import { traineeBasicInfoModel } from "./../../../../DB/models/traineeBasicInfo.model.js";
 
 const tranieeSignUp = catchAsyncError(async (req, res, next) => {
   const { firstName, lastName, email, password, phoneNumber } = req.body;
@@ -50,7 +50,13 @@ const tranieeSignUp = catchAsyncError(async (req, res, next) => {
     return next(new AppError("Email could not be sent", 500));
   }
 
-  res.status(201).json({ success: true, message: "User registered successfully!", data: newTrainee });
+  res
+    .status(201)
+    .json({
+      success: true,
+      message: "User registered successfully!",
+      data: newTrainee,
+    });
 });
 
 const verifyTraineeOTP = catchAsyncError(async (req, res, next) => {
@@ -99,7 +105,8 @@ const verifyTraineeOTP = catchAsyncError(async (req, res, next) => {
     {
       id: trainee._id,
       email: trainee.email,
-      name: trainee.firstName,
+      firstName: trainee.firstName,
+      lastName: trainee.lastName,
       role: trainee.role,
     },
     process.env.JWT_SECRET,
@@ -185,14 +192,22 @@ const basicInformation = catchAsyncError(async (req, res, next) => {
   await traineeModel.findByIdAndUpdate(tranieeId, {
     traineeBasicInfo: tranieeBasicInfo._id,
   });
-  
+
   //Fetch the traniee data after saving basic information
-  const tranieeData = await traineeModel.findById(tranieeId).populate('traineeBasicInfo')
+  const tranieeData = await traineeModel
+    .findById(tranieeId)
+    .populate("traineeBasicInfo");
 
-     // Log the saved trainee data for debugging (optional)
-     console.log('Saved trainee data:', tranieeData);
+  // Log the saved trainee data for debugging (optional)
+  console.log("Saved trainee data:", tranieeData);
 
-  res.status(200).json({ success: true, message: "Basic information saved successfully.", data:tranieeData });
+  res
+    .status(200)
+    .json({
+      success: true,
+      message: "Basic information saved successfully.",
+      data: tranieeData,
+    });
 });
 
 const forgetPassword = catchAsyncError(async (req, res, next) => {
@@ -313,68 +328,6 @@ const traineeSignIn = catchAsyncError(async (req, res, next) => {
   });
 });
 
-const changePassword = catchAsyncError(async (req, res, next) => {
-  const { oldPassword, newPassword, confirmPassword } = req.body;
-
-  // Check if newPassword and confirmPassword match
-  if (newPassword !== confirmPassword) {
-    return next(
-      new AppError("New password and confirmation password do not match.", 400)
-    );
-  }
-
-  const userId = req.user.id; // Extracting user ID from the JWT payload
-
-  // Check if old and new passwords are provided
-  if (!oldPassword || !newPassword) {
-    return next(new AppError("Please provide old and new passwords!", 400));
-  }
-
-  // Find the trainee by userId instead of email
-  const trainee = await traineeModel.findById(userId).select("+password");
-
-  if (!trainee) {
-    return next(new AppError("Trainee not found", 404));
-  }
-
-  // Check if the old password is correct
-  const isMatch = await bcrypt.compare(oldPassword, trainee.password);
-  if (!isMatch) {
-    return next(new AppError("Your old password is incorrect", 401));
-  }
-
-  // Hash the new password before saving
-  const salt = await bcrypt.genSalt(10);
-  trainee.password = await bcrypt.hash(newPassword, salt);
-
-  // Save the trainee with the new password
-  await trainee.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Password changed successfully!",
-  });
-});
-
-const deleteAccount = catchAsyncError(async (req, res, next) => {
-  const userId = req.user.id; // Assuming the user's ID is stored in req.user.payload._id after authentication
-
-  const trainee = await traineeModel.findById(userId);
-
-  if (!trainee) {
-    return next(new AppError("Trainee not found", 404));
-  }
-
-  // Delete the trainee's account
-  await traineeModel.deleteOne({ _id: userId });
-
-  // Respond to the request indicating the account has been deleted
-  res.status(200).json({
-    success: true,
-    message: "Account deleted successfully.",
-  });
-});
-
 export {
   tranieeSignUp,
   verifyTraineeOTP,
@@ -383,6 +336,4 @@ export {
   forgetPassword,
   resetPassword,
   traineeSignIn,
-  changePassword,
-  deleteAccount,
 };

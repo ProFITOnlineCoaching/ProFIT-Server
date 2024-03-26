@@ -13,10 +13,6 @@ tranieeAuthRouter.post("/basic-info",verifyToken,checkRole('trainee') , auth.bas
 tranieeAuthRouter.post("/forget-password", auth.forgetPassword);
 tranieeAuthRouter.post("/reset-password", auth.resetPassword);
 tranieeAuthRouter.post("/signin", auth.traineeSignIn);
-tranieeAuthRouter.post("/change-password",verifyToken,checkRole('trainee'), auth.changePassword);
-tranieeAuthRouter.delete("/delete-account",verifyToken,checkRole('trainee'), auth.deleteAccount);
-
-
 
 
 // checkBlockedStatus('trainer')
