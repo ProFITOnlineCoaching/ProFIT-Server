@@ -28,7 +28,6 @@ const tranieeSignUp = catchAsyncError(async (req, res, next) => {
     email,
     password,
     phoneNumber,
-    profilePhoto:"https://asset.cloudinary.com/dbpvx37nc/fa534bec3c11074c407903bcaabffad5",
     OTP,
     OTPExpires: new Date(Date.now() + 10 * 60 * 1000), // OTP expires in 10 minutes
   });
