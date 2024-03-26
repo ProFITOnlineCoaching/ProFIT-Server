@@ -10,7 +10,7 @@ import { traineeBasicInfoModel } from './../../../../DB/models/traineeBasicInfo.
 const tranieeSignUp = catchAsyncError(async (req, res, next) => {
   const { firstName, lastName, email, password, phoneNumber } = req.body;
 
-   console.log(req.body);
+  //  console.log(req.body);
 
   // Check if the email already exists in the database
   const existingUser = await traineeModel.findOne({ email });
@@ -19,6 +19,7 @@ const tranieeSignUp = catchAsyncError(async (req, res, next) => {
   }
 
   const OTP = generateRandomOTP();
+  console.log(existingUser);
 
   // Create a new Trainee instance
   const newTrainee = new traineeModel({
@@ -27,6 +28,7 @@ const tranieeSignUp = catchAsyncError(async (req, res, next) => {
     email,
     password,
     phoneNumber,
+    profilePhoto:"https://asset.cloudinary.com/dbpvx37nc/fa534bec3c11074c407903bcaabffad5",
     OTP,
     OTPExpires: new Date(Date.now() + 10 * 60 * 1000), // OTP expires in 10 minutes
   });

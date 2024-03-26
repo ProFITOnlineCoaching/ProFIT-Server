@@ -12,9 +12,9 @@ cloudinary.config({
   api_secret: '8HPjq5e6rCAY_NPLRGlNpwee-9Q' 
 });
 
-cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
-  { public_id: "olympic_flag" }, 
-  function(error, result) {console.log(result); });
+// cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
+//   { public_id: "olympic_flag" }, 
+//   function(error, result) {console.log(result); });
 
 function multerRefactor() {
     const storage = multer.diskStorage({
