@@ -7,6 +7,9 @@ import {
 } from "./html.js";
 
 export const sendEmail = async (options, protocol, host, messageType) => {
+  console.log("Email:", process.env.email);
+console.log("Password:", process.env.emailpass);
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     tls: {
