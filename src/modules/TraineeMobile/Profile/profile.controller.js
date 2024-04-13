@@ -91,6 +91,7 @@ const updateAccountData = catchAsyncError(async (req, res, next) => {
     data: trainee,
   });
 });
+
 const getPersonalData = catchAsyncError(async (req, res, next) => {
   const traineeId = req.user.id;
   // Use .lean() to get a plain JavaScript object
