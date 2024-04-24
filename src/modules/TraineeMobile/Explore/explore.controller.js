@@ -1,8 +1,5 @@
 import { AppError } from "../../../utils/AppError.js";
-import { generateRandomOTP } from "../../../utils/OTPGenerator.js";
 import { catchAsyncError } from "../../../utils/catchAsyncError.js";
-import { traineeModel } from "../../../../DB/models/trainee.model.js";
-import { traineeBasicInfoModel } from "./../../../../DB/models/traineeBasicInfo.model.js";
 import { trainerModel } from "../../../../DB/models/trainer.model.js";
 
 const getAllTrainers = catchAsyncError(async (req, res, next) => {
@@ -67,4 +64,5 @@ const getTrainerDetails = catchAsyncError(async (req, res, next) => {
     data: trainer,
   });
 });
+
 export { getAllTrainers, getTrainerDetails };

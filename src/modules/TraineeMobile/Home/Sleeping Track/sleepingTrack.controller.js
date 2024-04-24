@@ -50,52 +50,68 @@ function getEgyptToday(inputDate) {
 // Add Sleep Record
 const addSleepRecord = catchAsyncError(async (req, res) => {
   const traineeId = req.user.id;
-  const { sleepStart, sleepEnd } = req.body;
-  console.log(sleepStart,sleepEnd);
+  const { sleepStartUtc, sleepEndUtc } = req.body;
+
+  // Convert the incoming string dates to Date objects without adjusting for Egypt local time
+  const sleepStart = new Date(sleepStartUtc);
+  const sleepEnd = new Date(sleepEndUtc);
+
+  // Calculate duration based on the provided UTC times
   const { hours, minutes, totalMinutes } = calculateSleepDuration(sleepStart, sleepEnd);
 
-  // Use getEgyptToday to get the correct start of the day for sleepStart in Egypt's timezone
-  const { startOfToday } = getEgyptToday(sleepStart);
+  // Adjust sleepStart to the start of the day in UTC
+  const utcDate = new Date(sleepStart);
+  utcDate.setUTCHours(0, 0, 0, 0); // Sets the time to midnight UTC
 
-  // Create new sleep record
+  // Create new sleep record with UTC dates
   let sleepRecord = new sleepModel({
     trainee: traineeId,
-    sleepStart,
-    sleepEnd,
+    sleepStart, // stored in UTC
+    sleepEnd,   // stored in UTC
     duration: {
       hours: hours,
       minutes: minutes,
-      totalMinutes: totalMinutes // Optional, only if you want to store the total minutes as well
+      totalMinutes: totalMinutes // this is the duration in minutes
     },
-    date: startOfToday,
+    date: utcDate, // the start of the day in UTC
   });
 
   // Save the sleep record
   await sleepRecord.save();
 
+  // Return the response with the stored UTC times
   res.status(201).json({
+    success: true,
     message: "Sleep record added successfully",
-    sleepRecord,
+    sleepRecord: {
+      ...sleepRecord.toObject(),
+      sleepStart: sleepRecord.sleepStart.toISOString(), // Returned in UTC
+      sleepEnd: sleepRecord.sleepEnd.toISOString(),     // Returned in UTC
+      date: sleepRecord.date.toISOString().split('T')[0] // The date in UTC
+    },
   });
 });
 
-// get Latest Sleep Record for a Trainee
+
 const getLatestSleepRecord = catchAsyncError(async (req, res) => {
   const traineeId = req.user.id;
 
   // Fetch the latest sleep record for the trainee
   const latestSleepRecord = await sleepModel.findOne({ trainee: traineeId })
-    .sort({ sleepStart: -1 }) // Sort by sleepStart in descending order to get the latest
-    .limit(1); // Limit to one document
+  .sort({ _id: -1 }) // Sort by the _id field in descending order to get the latest record
+  .limit(1);
+
+    console.log(latestSleepRecord);
 
   if (!latestSleepRecord) {
-    // If there is no record, return the default record with zeroed-out times
+    // If there is no record, return a default record with zeroed-out times
     return res.status(200).json({
+      success: true,
       message: "No sleep record found for the trainee",
-      sleepRecord: {
-        date: new Date().toISOString().substring(0, 10), // Current date in YYYY-MM-DD format
-        sleepStart: '00:00',
-        sleepEnd: '00:00',
+      data: {
+        date: '', // You could use today's date in UTC converted to Egyptian time
+        sleepStart: '00:00 AM',
+        sleepEnd: '00:00 AM',
         duration: {
           hours: 0,
           minutes: 0,
@@ -105,24 +121,44 @@ const getLatestSleepRecord = catchAsyncError(async (req, res) => {
     });
   }
 
-  // Convert sleepStart and sleepEnd to Egypt timezone (UTC+2)
-  const offset = 2 * 60; // Egypt is UTC+2
-  const sleepStartInEgypt = new Date(latestSleepRecord.sleepStart.getTime() + offset * 60000);
-  const sleepEndInEgypt = new Date(latestSleepRecord.sleepEnd.getTime() + offset * 60000);
+  // Helper function to convert UTC date to Egypt local time (UTC+2)
+  const convertToEgyptLocalTime = (utcDate) => {
+    // Create a new Date object from the UTC date
+    const date = new Date(utcDate);
+    // Convert it to local time in Egypt by adding 2 hours
+    date.setUTCHours(date.getUTCHours() + 2);
+    return date;
+  };
 
-  // Format the sleep data for the UI
-  const formattedSleepData = {
-    date: sleepStartInEgypt.toISOString().substring(0, 10), // Keep the date in YYYY-MM-DD format
-    sleepStart: sleepStartInEgypt.toLocaleTimeString('en-EG', { hour: '2-digit', minute: '2-digit', hour12: true }),
-    sleepEnd: sleepEndInEgypt.toLocaleTimeString('en-EG', { hour: '2-digit', minute: '2-digit', hour12: true }),
+  const sleepStartLocal = convertToEgyptLocalTime(latestSleepRecord.sleepStart);
+  const sleepEndLocal = convertToEgyptLocalTime(latestSleepRecord.sleepEnd);
+
+  // Format the sleep times to a user-friendly 12-hour clock string
+  const formatTo12HourClock = (date) => {
+    const hours = date.getUTCHours(); // getUTCHours() because we've manually adjusted the date object
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    const amPm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12; // Convert 24h to 12h format; 0 becomes 12
+    return `${formattedHours}:${minutes} ${amPm}`;
+  };
+
+  // Construct the response data
+  const sleepRecordData = {
+    date: latestSleepRecord.date.toISOString().substring(0, 10), // Keep the date as is
+    sleepStart: formatTo12HourClock(sleepStartLocal),
+    sleepEnd: formatTo12HourClock(sleepEndLocal),
     duration: latestSleepRecord.duration
   };
 
   res.status(200).json({
-    message: "Sleep record retrieved successfully",
-    sleepRecord: formattedSleepData,
+    success: true,
+    message: "Latest sleep record retrieved successfully",
+    data: sleepRecordData
   });
 });
+
+
+
 
 // Update Sleep Record
 const updateSleepRecord = catchAsyncError(async (req, res) => {
